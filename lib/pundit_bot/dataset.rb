@@ -1,5 +1,10 @@
+require 'simplernlg' # if RUBY_PLATFORM == 'java'
+puts 'Warning, this only works on JRuby but you can check for syntax errors more quickly in MRE' if RUBY_PLATFORM != 'java'
+
 module PunditBot
   class Dataset
+    NLG = SimplerNLG::NLG
+
     attr_reader :name, :nouns, :min_year, :max_year, :data, :source, :data_type, :template_string
 
     def initialize(obj)
@@ -57,8 +62,8 @@ module PunditBot
       end.flatten]
     end
 
-    def data_claims(hash_of_election_results, politics_condition)
-      trues, falses = data.to_a.partition.each_with_index { |val, _idx| hash_of_election_results[val[0]] } # TODO: factor out; but something like it is used in data_claims
+    def data_claims(years_when_poltical_condition_true, election_interval)
+      data_when_political_condition_true = data.values_at(years_when_poltical_condition_true)
 
       # data_claims need a lambda and an English template
       # data_claims areto be divvied into types:
@@ -68,7 +73,7 @@ module PunditBot
       data_claims = {
         # claims that apply to changes in numbers as the noun itself ('atlantic hurricane deaths decreased')
         numeric: [
-          DataClaim.new(->(x, _) { x > trues.map { |_a, b| b }.min },
+          DataClaim.new(->(x, _) { x > data_when_political_condition_true.map { |_a, b| b }.min },
                         {
                           v: 'be',
                           tense: :past,
@@ -76,14 +81,14 @@ module PunditBot
                           prepositional_phrases: [{
                             preposition: 'than',
                             rest: {
-                              noun: trues.map { |_a, b| b }.min.to_s, # obvi true for trues; if true for all of falses, unemployment was less than trues.min all the time,
+                              noun: data_when_political_condition_true.map { |_a, b| b }.min.to_s, # obvi true for trues; if true for all of falses, unemployment was less than trues.min all the time,
                               template_string: (ts = template_string).respond_to?(:sample) ? ts.sample : ts # TODO should be rephraseable
                             }
                           }]
                         },
                         'greater than'),
 
-          DataClaim.new(->(x, _) { x < trues.map { |_a, b| b }.max },
+          DataClaim.new(->(x, _) { x < data_when_political_condition_true.map { |_a, b| b }.max },
                         {
                           v: 'be',
                           tense: :past,
@@ -91,7 +96,7 @@ module PunditBot
                           prepositional_phrases: [{
                             preposition: 'than',
                             rest: {
-                              noun: trues.map { |_a, b| b }.max.to_s,
+                              noun: data_when_political_condition_true.map { |_a, b| b }.max.to_s,
                               template_string: (ts = template_string).respond_to?(:sample) ? ts.sample : ts # TODO: should be rephraseable
                             }
                           }]
@@ -165,7 +170,7 @@ module PunditBot
                         'declined',
                         1),
 
-          DataClaim.new(->(x, yr) { x > data[(yr.to_i - politics_condition.election_interval).to_s] },
+          DataClaim.new(->(x, yr) { x > data[(yr.to_i - election_interval).to_s] },
                         {
                           v: 'grow',
                           tense: :past,
@@ -173,8 +178,8 @@ module PunditBot
                           c: 'from the previous election year'
                         },
                         'grew from the previous election year',
-                        politics_condition.election_interval),
-          DataClaim.new(->(x, yr) { x < data[(yr.to_i - politics_condition.election_interval).to_s] },
+                        election_interval),
+          DataClaim.new(->(x, yr) { x < data[(yr.to_i - election_interval).to_s] },
                         {
                           v: 'decline',
                           tense: :past,
@@ -182,7 +187,7 @@ module PunditBot
                           c: 'from the previous election year'
                         },
                         'declined from the previous election year',
-                        politics_condition.election_interval)
+                        election_interval)
         ],
 
         # for categorial data

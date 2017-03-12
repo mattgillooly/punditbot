@@ -324,5 +324,29 @@ module PunditBot
       # [#{dataset}, #{column}, #{column_type}]
       @prediction_text.nil? ? nil : "#{@prediction_text.size} chars: \"#{@prediction_text}\"\n#{prove_it!}\n"
     end
+
+    def self.build(party, correlating_time_series, politics_condition, dataset, politics_claim_truth_vector)
+      prediction = Prediction.new
+
+      # used in the actual template
+      prediction.prediction_meta[:party] =               party
+      prediction.prediction_meta[:claim_polarity] =      correlating_time_series[:polarity]
+      prediction.prediction_meta[:start_year] =          correlating_time_series[:start_year]
+      prediction.prediction_meta[:data_claim_template] = correlating_time_series[:data_claim].template
+      prediction.prediction_meta[:exceptional_year] = correlating_time_series[:exceptional_year]
+      prediction.prediction_meta[:politics_condition] =  politics_condition
+      prediction.prediction_meta[:correlate_noun] =      correlating_time_series[:correlate_noun]
+
+      # used for debug
+      prediction.prediction_debug[:covered_years] =               correlating_time_series[:covered_years]
+      prediction.prediction_debug[:data] =                        dataset.data
+      prediction.prediction_debug[:data_claim] =                  correlating_time_series[:data_claim] # DataClaim objcet
+      prediction.prediction_debug[:politics_claim_truth_vector] = politics_claim_truth_vector
+      # prediction.prediction_debug[:end_year] =                    @dataset.max_year )
+      # prediction.prediction_debug[:data_claim_type] =             correlating_time_series[:data_claim_type])
+      # prediction.prediction_debug[:election_interval] =           politics_condition.election_interval)
+
+      prediction
+    end
   end # ends the class
 end # ends the module

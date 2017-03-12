@@ -1,4 +1,5 @@
 require_relative 'utils'
+require_relative './pundit_bot/election_history.rb'
 require_relative './pundit_bot/pundit.rb'
 require_relative './pundit_bot/noun.rb'
 require_relative './pundit_bot/data_claim.rb'
