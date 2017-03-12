@@ -7,6 +7,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     addressable (2.3.8)
+    ast (2.3.0)
     buftok (0.2.0)
     equalizer (0.0.11)
     faraday (0.9.1)
@@ -21,6 +22,17 @@ GEM
       thread_safe (~> 0.3, >= 0.3.1)
     multipart-post (2.0.0)
     naught (1.0.0)
+    parser (2.4.0.0)
+      ast (~> 2.2)
+    powerpack (0.1.1)
+    rainbow (2.2.1)
+    rubocop (0.41.2)
+      parser (>= 2.3.1.1, < 3.0)
+      powerpack (~> 0.1)
+      rainbow (>= 1.99.1, < 3.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (~> 1.0, >= 1.0.1)
+    ruby-progressbar (1.8.1)
     simple_oauth (0.3.1)
     thread_safe (0.3.5)
     thread_safe (0.3.5-java)
@@ -35,14 +47,16 @@ GEM
       memoizable (~> 0.4.0)
       naught (~> 1.0)
       simple_oauth (~> 0.3.0)
+    unicode-display_width (1.1.3)
 
 PLATFORMS
   java
   ruby
 
 DEPENDENCIES
+  rubocop
   simplernlg!
   twitter
 
 BUNDLED WITH
-   1.13.6
+   1.14.6

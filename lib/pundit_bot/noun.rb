@@ -1,5 +1,5 @@
 module PunditBot
-  class Noun #< String
+  class Noun # < String
     attr_reader :word
     def initialize(word, number)
       @word = word.is_a?(Noun) ? word.word : word

@@ -5,7 +5,7 @@ module PunditBot
     def initialize(condition, template, name, year_buffer = nil)
       @template = template
       @name = name
-      raise ArgumentError, "DataClaim condition is not callable" unless condition.respond_to? :call
+      raise ArgumentError, 'DataClaim condition is not callable' unless condition.respond_to? :call
       @condition = condition
       @year_buffer = year_buffer || 0
     end

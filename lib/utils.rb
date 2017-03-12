@@ -23,7 +23,7 @@ class Hash
   end
 
   def compact
-    z = self.dup
+    z = dup
     z.compact!
     z
   end
