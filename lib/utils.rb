@@ -1,7 +1,3 @@
-def dupnil(obj)
-  obj.nil? ? nil : obj.dup
-end
-
 def with(instance, &block) # ♫ gimme some syntactic sugar, I am your neighbor ♫
   instance.instance_eval(&block)
   instance
