@@ -63,7 +63,7 @@ module PunditBot
     end
 
     def data_claims(years_when_poltical_condition_true, election_interval)
-      data_when_political_condition_true = data.values_at(years_when_poltical_condition_true)
+      data_when_political_condition_true = data.values_at(*years_when_poltical_condition_true)
 
       # data_claims need a lambda and an English template
       # data_claims areto be divvied into types:
@@ -73,7 +73,7 @@ module PunditBot
       data_claims = {
         # claims that apply to changes in numbers as the noun itself ('atlantic hurricane deaths decreased')
         numeric: [
-          DataClaim.new(->(x, _) { x > data_when_political_condition_true.map { |_a, b| b }.min },
+          DataClaim.new(->(x, _) { x > data_when_political_condition_true.min},
                         {
                           v: 'be',
                           tense: :past,
@@ -88,7 +88,7 @@ module PunditBot
                         },
                         'greater than'),
 
-          DataClaim.new(->(x, _) { x < data_when_political_condition_true.map { |_a, b| b }.max },
+          DataClaim.new(->(x, _) { x < data_when_political_condition_true.max},
                         {
                           v: 'be',
                           tense: :past,
