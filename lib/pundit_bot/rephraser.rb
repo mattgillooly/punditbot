@@ -80,8 +80,7 @@ module PunditBot
         return nil
       end
 
-      buffer = max_output_length - shortest_possible_sentence.size # [max_rephraseable_length - min_rephraseable_length, MAX_OUTPUT_LENGTH - shortest_possible_sentence_length].min
-      # puts "Buffer: #{buffer}"
+      buffer = max_output_length - shortest_possible_sentence.size 
 
       rephraseables.to_a.shuffle.each do |k, v|
         # rather than choosing randomly, should prefer longer versions
@@ -89,8 +88,7 @@ module PunditBot
         weighted = v.reduce([]) { |memo, nxt| memo += [nxt] * nxt.size }
         weighted.shuffle!
         chosen_word = weighted.first
-        # puts "Buffer: #{buffer.to_s.size == 1 ? ' ' : ''}#{buffer}, chose '#{chosen_word}' from #{v}"
-        redo if buffer - (chosen_word.size - weighted.min_by(&:size).size) < 0 # I think this is bad. I think this'll never end.
+        redo if buffer - (chosen_word.size - weighted.min_by(&:size).size) < 0
         rephrased[k] = chosen_word
         puts "chosen word: #{chosen_word}"
         buffer -= (chosen_word.size - weighted.min_by(&:size).size)

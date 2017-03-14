@@ -47,14 +47,18 @@ module PunditBot
 
     def vectorize_politics_condition(politics_condition, party)
       victors = @elections[politics_condition.race][politics_condition.jurisdiction]
-      tf_vector = Hash[*@election_years[politics_condition.race].each_with_index.map do |year, index|
-        if politics_condition.change
-          [year, (politics_condition.control == (victors[year].match(/[A-Z]+/).to_s == party.wikipedia_symbol)) &&
-            ((index != 0) && (victors[year].match(/[A-Z]+/).to_s != victors[@election_years[politics_condition.race][index - 1]].match(/[A-Z]+/).to_s))]
-        else
-          [year, politics_condition.control == (victors[year].match(/[A-Z]+/).to_s == party.wikipedia_symbol)]
-        end
-      end.flatten]
+      race_election_years = @election_years[politics_condition.race]
+
+      tf_vector = Hash[*race_election_years.each_with_index.flat_map do |year, index|
+        winner_symbol = victors[year].match(/[A-Z]+/).to_s
+        actual_control = (winner_symbol == party.wikipedia_symbol)
+
+        previous_election_year = race_election_years[index - 1]
+        previous_winner_symbol = victors[previous_election_year].match(/[A-Z]+/).to_s
+        control_changed = previous_winner_symbol && (winner_symbol != previous_winner_symbol)
+
+        [year, politics_condition.satisfied?(actual_control, control_changed)]
+      end]
       tf_vector
     end
 

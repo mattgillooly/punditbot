@@ -1,6 +1,3 @@
-require 'simplernlg' if RUBY_PLATFORM == 'java'
-puts 'Warning, this only works on JRuby but you can check for syntax errors more quickly in MRE' if RUBY_PLATFORM != 'java'
-
 require_relative './prediction_prover'
 require_relative './prediction_sentence_template'
 require_relative './rephraser'

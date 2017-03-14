@@ -3,6 +3,9 @@ require 'yaml'
 
 module PunditBot
   class Pundit
+    POLARITIES = [true, false].freeze
+    TOO_RECENT_TO_CARE_CUTOFF = 1992 # if the claim is false twice after (including) 1992, then skip the correlation
+
     def initialize
       @election_history = ElectionHistory.new
       @parties = PARTIES
