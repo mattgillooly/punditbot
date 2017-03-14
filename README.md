@@ -1,35 +1,14 @@
 PunditBot
 =========
 
-> "Duke hasn't defeated Carolina at home on a rainy Thursday since 1872!" - some sportscaster, probably
+This is a fork of [jeremybmerrill's punditbot](https://github.com/jeremybmerrill/punditbot).
 
-> "The Democrats haven't won the White House without winning Iowa in a year when someone named Obama wasn't running since 1824." - some pundit, probably
+It doesn't add any functionality to the original.
+In fact, I've probably broken some things that worked just fine before I came along.
 
-These claims are stupid. They have no predictive power. Let's mock them.
+All I'm doing is moving code around to improve my understanding of [an NLG pipeline](https://github.com/simplenlg/simplenlg/wiki/Section%20XV%20%E2%80%93%20Appendix%20A%20%E2%80%93%20NLG%20and%20SimpleNLG).
+I'm mainly trying to improve the separation of concerns between the Document Planning, Microplanning, and Surface Realiztion steps.
 
-### TODO:
+If I do a good job, this will result in improved testability of each step, though I probably won't get around to actually writing many tests.
 
-####  DO NOW: 
-
-  - miles traveled (RITA file in data, http://www.rita.dot.gov/bts/sites/rita.dot.gov.bts/files/publications/national_transportation_statistics/html/table_01_40.html)
-  - updated vegetable figures?
-  - add airline delays, amtrak stations served, oil prices (http://www.eia.gov/dnav/pet/pet_pri_spt_s1_a.htm)
-
-#### Leave this for later, focus on MVP:
-
-    - add categorical data sets (how does this work??) {:s => "weather on election day", :v => 'is', :o => "rainy"} {:s => "the Super Bowl winner", :v => 'is', :o => "the Patriots"}
-    - state based "without winning Iowa or Pennsylvania"
-    - MAYBE: add support for candidate based exceptions ("Without a Clinton on the ballot, ")
-    - boolean type (e.g. "had a trade deficit", "was warmer than usual")?? ( already in correlates.yml )
-  - can I make a hash that represents a whole sentence?? (then isolate linguistics stuff)
-  - Do I even need this Noun class? Will the Lexicon thing deal with noun number for me?
-  - Replace binary logic with ternary, so we can deal with both-houses-of-Congress control, which can be R, D or Split
-  - replace units prefix/suffix thing with a template string, to allow to specify something like "$7.55/oz"
-  - find or make a better oil price (Fred's is 1940s-2013, and another is 1986-pres, neither of which is great)
-  - are prices truncated/rounded yet?
-  - TODO: readd commaification
-
-
-Fred is a great source for data to feed to PunditBot:
-https://alfred.stlouisfed.org/category?cid=32217&et=&pageID=3&t=
-https://github.com/mortada/fredapi apparently could filter out datasets by dates of first (before 1980) and last (2015ish) observation
+If I do a great job, this will result in an NLG architecture I'll want to re-use on my own projects.
