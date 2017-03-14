@@ -57,25 +57,3 @@ module PunditBot
     puts predictions
   end
 end
-
-$settings_for_testing = {
-  dataset: nil,
-  # unemployment.csv, atlantic_hurricanes.csv, super_bowl.csv,
-  # vegetables.csv, us_international_trade_in_goods.csv, avg_temperature.csv,
-  # central_park_election_day_weather.csv, monthly-central-park-snowfall.csv
-  # PCOFFROBUSDA.csv,  GOLDAMGBD228NLBM.csv,  PSOYBUSDQ.csv,  PWHEAMTUSDA.csv,
-  # PBEEFUSDA.csv,  PIORECRUSDM.csv,  OILPRICE.csv,  HOUSTNSA.csv,  PCECA.csv,
-  # PSAVERT.csv,  RRVRUSQ156N.csv,  TRFVOLUSM227NFWA.csv,
-
-  data_column: nil,
-  politics_condition: nil, # [:sen_lost, :pres_lost, :house_lost, :sen_won, :pres_won, :house_won]
-  political_party: nil, # [:dem, :gop]
-  data_claim: nil
-  # "greater than", "less than", "is positive", "is negative",
-  # "grew from the previous year", "declined from the previous year",
-  # "grew year over year", "declined year over year", "increased", "declined",
-  # "grew from the previous election year", "declined from the previous election year",
-  # "was", "adds up to an even number", "adds up to an odd number",
-  # "starts up to an even number", "starts up to an odd number", "is an even number",
-  # "is an odd number",
-}

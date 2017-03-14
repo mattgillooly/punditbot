@@ -40,7 +40,7 @@ module PunditBot
       @data_columns += @data_columns.select { |column| column['type'] == 'numeric' }.map { |column| c = column.dup; c['type'] = 'integral'; c }
       # reject those columns whose type doesn't have a cleaner (i.e. I haven't figured out categorical yet, but some are in the yaml file)
       @data_columns.reject! { |column| cleaners[column['type'].to_sym].nil? }
-      column = @data_columns.find { |col| col['header'] == $settings_for_testing[:data_column] } || @data_columns.sample
+      column = @data_columns.sample
       if column['nouns']
         @nouns = column['nouns'].map { |n| Noun.new(n['noun'], n['noun_number']) }
       else
@@ -278,24 +278,6 @@ module PunditBot
                           c: 'an odd number'
                         },
                         'is an odd number'),
-          # removed for being kind of dumb.
-          # DataClaim.new( lambda{|x, _| x.to_s.chars.to_a.last.to_i.even? },
-          #   {
-          #     :v => 'end',
-          #     :tense => :past,
-          #     # TODO: this is actually a complement
-          #     :c => "in an even number"
-          #   }
-          # ),
-          # DataClaim.new( lambda{|x, _| x.to_s.chars.to_a.last.to_i.odd? }, #TODO: figure out how to get rid of these dupes (odd/even)
-          #   {
-          #     :v => 'end',
-          #     :tense => :past,
-          #     # TODO: this is actually a complement
-          #     :c => "in an odd number"
-          #   }
-          # ),
-
         ]
       }
     end

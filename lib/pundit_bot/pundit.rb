@@ -10,9 +10,8 @@ module PunditBot
     end
 
     def get_a_dataset!
-      # @dataset = Dataset.new(  @datasets.select{|y| y["filename"] }.sample   )
       valid_datasets = @datasets.select { |y| y['filename'] }
-      @dataset = Dataset.new(valid_datasets.find { |d| d['filename'] == $settings_for_testing[:dataset] } || valid_datasets.sample)
+      @dataset = Dataset.new(valid_datasets.sample)
       @dataset.get_data!
     end
 
@@ -32,8 +31,6 @@ module PunditBot
 
       correlate_meta = nil
       polarized_claims.shuffle.find do |data_claim, polarity|
-        next false unless $settings_for_testing[:data_claim].nil? || data_claim.name == $settings_for_testing[:data_claim]
-
         # find the most recent two years where the pattern is broken
         correlate_meta = calculate_correlate_meta(past_race_years, data_claim, polarity, hash_of_election_results, politics_condition)
       end
@@ -42,9 +39,8 @@ module PunditBot
     end
 
     def generate_prediction
-      # prediction.set(:party, party = @parties[ $settings_for_testing[:political_party] || @parties.keys.sample]) # TODO: party is our subj
-      party = @parties[$settings_for_testing[:political_party] || @parties.keys.sample]
-      politics_condition = POLITICS_CONDITIONS[$settings_for_testing[:politics_condition] || POLITICS_CONDITIONS.keys.sample]
+      party = @parties.values.sample
+      politics_condition = POLITICS_CONDITIONS.values.sample
       politics_claim_truth_vector = @election_history.vectorize_politics_condition(politics_condition, party)
 
       correlating_time_series = find_correlating_time_series(politics_claim_truth_vector, politics_condition)
