@@ -1,10 +1,24 @@
-require 'simplernlg' # if RUBY_PLATFORM == 'java'
-puts 'Warning, this only works on JRuby but you can check for syntax errors more quickly in MRE' if RUBY_PLATFORM != 'java'
+require_relative './claims/adds_up_to_an_even_number_claim'
+require_relative './claims/adds_up_to_an_odd_number_claim'
+require_relative './claims/declined_claim'
+require_relative './claims/declined_from_previous_election_year_claim'
+require_relative './claims/declined_from_previous_year_claim'
+require_relative './claims/declined_year_over_year_claim'
+require_relative './claims/greater_than_claim'
+require_relative './claims/grew_from_previous_election_year_claim'
+require_relative './claims/grew_from_previous_year_claim'
+require_relative './claims/grew_year_over_year_claim'
+require_relative './claims/increased_claim'
+require_relative './claims/is_an_even_number_claim'
+require_relative './claims/is_an_odd_number_claim'
+require_relative './claims/is_negative_claim'
+require_relative './claims/is_positive_claim'
+require_relative './claims/less_than_claim'
+require_relative './claims/starts_with_an_even_number_claim'
+require_relative './claims/starts_with_an_odd_number_claim'
 
 module PunditBot
   class Dataset
-    NLG = SimplerNLG::NLG
-
     attr_reader :name, :nouns, :min_year, :max_year, :data, :source, :data_type, :template_string
 
     def initialize(obj)
@@ -63,7 +77,6 @@ module PunditBot
     end
 
     def data_claims(years_when_poltical_condition_true, election_interval)
-      data_when_political_condition_true = data.values_at(*years_when_poltical_condition_true)
 
       # data_claims need a lambda and an English template
       # data_claims areto be divvied into types:
@@ -73,211 +86,28 @@ module PunditBot
       data_claims = {
         # claims that apply to changes in numbers as the noun itself ('atlantic hurricane deaths decreased')
         numeric: [
-          DataClaim.new(->(x, _) { x > data_when_political_condition_true.min},
-                        {
-                          v: 'be',
-                          tense: :past,
-                          o: 'greater',
-                          prepositional_phrases: [{
-                            preposition: 'than',
-                            rest: {
-                              noun: data_when_political_condition_true.map { |_a, b| b }.min.to_s, # obvi true for trues; if true for all of falses, unemployment was less than trues.min all the time,
-                              template_string: (ts = template_string).respond_to?(:sample) ? ts.sample : ts # TODO should be rephraseable
-                            }
-                          }]
-                        },
-                        'greater than'),
-
-          DataClaim.new(->(x, _) { x < data_when_political_condition_true.max},
-                        {
-                          v: 'be',
-                          tense: :past,
-                          o: 'less',
-                          prepositional_phrases: [{
-                            preposition: 'than',
-                            rest: {
-                              noun: data_when_political_condition_true.map { |_a, b| b }.max.to_s,
-                              template_string: (ts = template_string).respond_to?(:sample) ? ts.sample : ts # TODO: should be rephraseable
-                            }
-                          }]
-                        },
-                        'less than'),
-
-          DataClaim.new(->(x, _) { x > 0 },
-                        {
-                          v: 'is',
-                          tense: :past,
-                          o: 'positive'
-                        },
-                        'is positive'),
-          DataClaim.new(->(x, _) { x < 0 },
-                        {
-                          v: 'is',
-                          tense: :past,
-                          o: 'negative'
-                        },
-                        'is negative'),
-
-          # these are duplicates
-          DataClaim.new(->(x, yr) { x > data[(yr.to_i - 1).to_s] },
-                        {
-                          v: 'grow',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'from the previous year'
-                        },
-                        'grew from the previous year',
-                        1),
-          DataClaim.new(->(x, yr) { x < data[(yr.to_i - 1).to_s] },
-                        {
-                          v: 'decline',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'from the previous year'
-                        },
-                        'declined from the previous year',
-                        1),
-          DataClaim.new(->(x, yr) { x > data[(yr.to_i - 1).to_s] },
-                        {
-                          v: 'grow',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'year over year'
-                        },
-                        'grew year over year',
-                        1),
-          DataClaim.new(->(x, yr) { x < data[(yr.to_i - 1).to_s] },
-                        {
-                          v: 'decline',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'year over year'
-                        },
-                        'declined year over year',
-                        1),
-          DataClaim.new(->(x, yr) { x > data[(yr.to_i - 1).to_s] },
-                        {
-                          v: 'increase',
-                          tense: :past
-                        },
-                        'increased',
-                        1),
-          DataClaim.new(->(x, yr) { x < data[(yr.to_i - 1).to_s] },
-                        {
-                          v: 'decline',
-                          tense: :past
-                        },
-                        'declined',
-                        1),
-
-          DataClaim.new(->(x, yr) { x > data[(yr.to_i - election_interval).to_s] },
-                        {
-                          v: 'grow',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'from the previous election year'
-                        },
-                        'grew from the previous election year',
-                        election_interval),
-          DataClaim.new(->(x, yr) { x < data[(yr.to_i - election_interval).to_s] },
-                        {
-                          v: 'decline',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'from the previous election year'
-                        },
-                        'declined from the previous election year',
-                        election_interval)
-        ],
-
-        # for categorial data
-        # TODO: write this.
-        # but what does it look like?
-        # when the AFC won the Super Bowl?
-        # when an NFC team was the Super Bowl winner
-        categorical: [
-          DataClaim.new(->(x, yr) {},
-                        {
-                          v: 'be',
-                          tense: :past,
-                          o: 'asfd asdf TK'
-                          # TODO: this is actually a complement
-                        },
-                        'was')
+          Claims::GreaterThanClaim.new(data, years_when_poltical_condition_true, election_interval, template_string),
+          Claims::LessThanClaim.new(data, years_when_poltical_condition_true, election_interval, template_string),
+          Claims::IsPositiveClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::IsNegativeClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::GrewFromPreviousYearClaim.new(data, years_when_poltical_condition_true, 1),
+          Claims::DeclinedFromPreviousYearClaim.new(data, years_when_poltical_condition_true, 1),
+          Claims::GrewYearOverYearClaim.new(data, years_when_poltical_condition_true, 1),
+          Claims::DeclinedYearOverYearClaim.new(data, years_when_poltical_condition_true, 1),
+          Claims::IncreasedClaim.new(data, years_when_poltical_condition_true, 1),
+          Claims::DeclinedClaim.new(data, years_when_poltical_condition_true, 1),
+          Claims::GrewFromPreviousElectionYearClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::DeclinedFromPreviousElectionYearClaim.new(data, years_when_poltical_condition_true, election_interval)
         ],
 
         # "integral" data claims are about the numbers qua numbers, e.g. odd, even.
         integral: [
-          DataClaim.new(->(x, _) { x.to_s.chars.map(&:to_i).reduce(&:+).even? },
-                        # "<noun>'s digits add up to an even number",
-                        {
-                          n: lambda do |n|
-                               np = NLG.factory.create_noun_phrase('digit')
-                               np.set_plural true
-                               last_word = (split_word = (n.respond_to?(:word) ? n.word : n).split(' ')).last
-                               possessive = NLG.factory.create_noun_phrase(last_word)
-                               possessive.add_pre_modifier(split_word[0...-1].join(' '))
-                               possessive.set_plural n.plural?
-                               possessive.set_feature NLG::Feature::POSSESSIVE, true
-                               np.set_specifier(possessive)
-                               np
-                             end,
-                          v: 'add',
-                          tense: :present,
-                          c: 'up to an even number'
-                        },
-                        'adds up to an even number'),
-          DataClaim.new(->(x, _) { x.to_s.chars.map(&:to_i).reduce(&:+).odd? },
-                        # "<noun>'s digits add up to an odd number",
-                        {
-                          n: lambda do |n|
-                               np = NLG.factory.create_noun_phrase('digit')
-                               np.set_feature NLG::Feature::NUMBER, NLG::NumberAgreement::PLURAL
-                               last_word = (split_word = n.word.split(' ')).last
-                               possessive = NLG.factory.create_noun_phrase(last_word)
-                               possessive.add_pre_modifier(split_word[0...-1].join(' '))
-                               possessive.set_feature NLG::Feature::NUMBER, n.singular? ? NLG::NumberAgreement::SINGULAR : NLG::NumberAgreement::PLURAL
-                               possessive.set_feature NLG::Feature::POSSESSIVE, true
-                               np.set_specifier(possessive)
-                               np
-                             end,
-                          v: 'add',
-                          tense: :present,
-                          c: 'up to an odd number'
-                        },
-                        'adds up to an odd number'),
-          DataClaim.new(->(x, _) { x.to_s.chars.to_a.first.to_i.even? },
-                        {
-                          v: 'start',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'with an even number'
-                        },
-                        'starts up to an even number'),
-          DataClaim.new(->(x, _) { x.to_s.chars.to_a.first.to_i.odd? },
-                        {
-                          v: 'start',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'with an odd number'
-                        },
-                        'starts up to an odd number'),
-          DataClaim.new(->(x, _) { x.round.even? },
-                        {
-                          v: 'be',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'an even number'
-                        },
-                        'is an even number'),
-          DataClaim.new(->(x, _) { x.round.odd? },
-                        {
-                          v: 'be',
-                          tense: :past,
-                          # TODO: this is actually a complement
-                          c: 'an odd number'
-                        },
-                        'is an odd number'),
+          Claims::AddsUpToAnEvenNumberClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::AddsUpToAnOddNumberClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::StartsWithAnEvenNumberClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::StartsWithAnOddNumberClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::IsAnEvenNumberClaim.new(data, years_when_poltical_condition_true, election_interval),
+          Claims::IsAnOddNumberClaim.new(data, years_when_poltical_condition_true, election_interval)
         ]
       }
     end

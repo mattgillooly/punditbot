@@ -55,8 +55,6 @@ module PunditBot
 
       party.allow_singular! if politics_condition.race == :pres
 
-      raise IOError, 'correlating_time_series[:data_claim].template was nil' if correlating_time_series[:data_claim].template.nil?
-
       Prediction.build(party, correlating_time_series, politics_condition, @dataset, politics_claim_truth_vector)
     end
 
@@ -81,7 +79,7 @@ module PunditBot
         year_is_valid = (year.to_i - data_claim.year_buffer).to_s >= @dataset.min_year.to_i.to_s
         # some data claims require data going back before the `year`. if we can do that, then year_is_valid = true
 
-        data_claim_applies_this_year = year_is_valid && data_claim.condition.call(@dataset.data[year], year)
+        data_claim_applies_this_year = year_is_valid && data_claim.condition(@dataset.data[year], year)
         # four possibilities: data claim is true or false; the party won or lost the election
         #    if the data claim is false, we don't care about the election that year
         #    that is to say, if we're making a claim about what happens when X prices are an odd number
