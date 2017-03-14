@@ -5,35 +5,43 @@ module PunditBot
     attr_reader :rephraseables, :max_output_length
 
     def initialize(rephraseables, max_output_length = MAX_TWEET_LENGTH)
-      @rephraseables = rephraseables
+      @rephraseables = rephraseables.compact.reject { |_k, v| v.empty? }
       @max_output_length = max_output_length
     end
 
     def self.build_from_prediction_meta(prediction_meta)
-      rephrased = {}
+      rephraseables = {}
 
-      rephrased[:party_noun] = dupnil(prediction_meta[:party].alt_names) # the democrats
-      rephrased[:politics_condition_verb] = dupnil(prediction_meta[:politics_condition].verb) # lost
-      rephrased[:politics_condition_object] = dupnil(prediction_meta[:politics_condition].objects) # the white house
+      rephraseables[:party_noun] = dupnil(prediction_meta[:party].alt_names) # the democrats
+      rephraseables[:politics_condition_verb] = dupnil(prediction_meta[:politics_condition].verb) # lost
+      rephraseables[:politics_condition_object] = dupnil(prediction_meta[:politics_condition].objects) # the white house
 
       data_claim_template = prediction_meta[:data_claim_template]
       if data_claim_template.key?(:o) && data_claim_template[:o] # greater
-        rephrased[:data_claim_obj] = (data_claim_template[:o].respond_to?(:min_by) ? data_claim_template[:o] : [data_claim_template[:o]])
+        rephraseables[:data_claim_obj] = (data_claim_template[:o].respond_to?(:min_by) ? data_claim_template[:o] : [data_claim_template[:o]])
       end
 
-      rephrased[:correlate_noun] = dupnil(prediction_meta[:correlate_noun]) # unemployment
+      rephraseables[:correlate_noun] = dupnil(prediction_meta[:correlate_noun]) # unemployment
 
       puts "correlate noun: #{dupnil(prediction_meta[:correlate_noun])}"
 
-      rephrased[:since_pp_position] =        [:pre, :post, :front]
-      rephrased[:every_year_pp_position] =   [:pre, :post, :front]
-      rephrased[:since_after] =              ['since', 'after', 'starting in']
-      rephrased[:except] =                   ['except', 'besides', 'except in']
-      rephrased[:year_or_election] =         ['year', 'election year']
-      rephrased[:when] =                     ['when', 'in years when', 'whenever', 'in years']
-      rephrased[:since_pp_modified] =        [:main_clause, :year_pp]
+      rephraseables[:since_pp_position] =        [:pre, :post, :front]
+      rephraseables[:every_year_pp_position] =   [:pre, :post, :front]
+      rephraseables[:since_after] =              ['since', 'after', 'starting in']
+      rephraseables[:except] =                   ['except', 'besides', 'except in']
+      rephraseables[:year_or_election] =         ['year', 'election year']
+      rephraseables[:when] =                     ['when', 'in years when', 'whenever', 'in years']
+      rephraseables[:since_pp_modified] =        [:main_clause, :year_pp]
 
-      new(rephrased)
+      new(rephraseables)
+    end
+
+    def shortest_rephrase_options
+      @shortest_rephrase_options ||= Hash[
+        rephraseables.map do |k, v|
+          [k, v.respond_to?(:min_by) ? v.min_by(&:size) : rephraseables.delete(k)]
+        end
+      ]
     end
 
     def rephrase(sentence_template)
@@ -49,34 +57,14 @@ module PunditBot
       # rephraseable objects like Party are also handled here.
       # which perhaps should implement a Rephraseable mix-in so they can have min_by, max_by
 
-      rephraseables.compact!
-      rephraseables.reject! { |_k, v| v.empty? }
-      rephrased = {}
-      shortest_rephrase_options = {}
-
-      rephraseables.each do |k, v|
-        rephrased[k] = shortest_rephrase_options[k] = rephraseables.delete(k) unless v.respond_to?(:min_by)
-      end
-
-      min_rephraseable_length = 0
-      max_rephraseable_length = 0
-      unrephraseable_length = 0
-      rephraseables.each do |_k, v|
-        if v.respond_to?(:min_by) && !v.empty?
-          max_rephraseable_length += v.max_by(&:size).size # +1 for spaces
-          min_rephraseable_length += v.min_by(&:size).size # +1 for spaces
-        end
-      end
-
-      rephraseables.each do |k, v|
-        shortest_rephrase_options[k] = v.min_by(&:size)
-      end
-      puts shortest_rephrase_options.inspect
+      rephrased = shortest_rephrase_options
 
       shortest_possible_sentence = sentence_template.realize(shortest_rephrase_options)
 
       if max_output_length < shortest_possible_sentence.size
-        puts "way too long (#{shortest_possible_sentence.size}) : #{(shortest_possible_sentence)}"
+        puts "No way to phrase this in #{max_output_length} characters or fewer. " \
+          "(shortest version has #{shortest_possible_sentence.size}) : #{(shortest_possible_sentence)}"
+
         return nil
       end
 
@@ -85,16 +73,17 @@ module PunditBot
       rephraseables.to_a.shuffle.each do |k, v|
         # rather than choosing randomly, should prefer longer versions
         # we put each option into the hat once per character in it
-        weighted = v.reduce([]) { |memo, nxt| memo += [nxt] * nxt.size }
-        weighted.shuffle!
-        chosen_word = weighted.first
-        redo if buffer - (chosen_word.size - weighted.min_by(&:size).size) < 0
+        weighted = v.flat_map { |version| [version] * version.size }
+
+        shortest_word = weighted.min_by(&:size)
+        chosen_word = weighted.sample
+
+        redo if buffer - (chosen_word.size - shortest_word.size) < 0
+
         rephrased[k] = chosen_word
-        puts "chosen word: #{chosen_word}"
         buffer -= (chosen_word.size - weighted.min_by(&:size).size)
       end
 
-      puts "rephrased.inspect: #{rephrased.inspect}"
       sentence_template.realize(rephrased)
     end
 
